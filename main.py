@@ -22,7 +22,14 @@ for job_element in job_elements:
         with open("last.txt", "w") as f:
             f.write(com)
         link = "https://www.canudo.edu.it" + urllib.parse.quote(job_element.find_all("a")[0]["href"])
-        title = job_element.find("span", style="font-family: arial, helvetica, sans-serif;").text
+        try:
+            uptitle = job_element.find("p", style="text-align: justify;").text
+            if "Oggettoa" in uptitle:
+                title = uptitle
+            else:
+                title = ""
+        except:
+            title = ""
         keyboard = {"inline_keyboard": [[{"text": "📎 Balza sul sito", "url": link}]]}
         requests.post("https://api.telegram.org/bot5171831004:AAH89EXSzyThNSiHuAy8oRSi-qHLAStxi6o/sendMessage", data={"chat_id": -1001650476739, "text": "<b>📍" + com + "</b>" + title, "reply_markup": json.dumps(keyboard), "parse_mode": "HTML"})
     except:
