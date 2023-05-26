@@ -24,7 +24,7 @@ for job_element in job_elements:
         link = "https://www.canudo.edu.it" + urllib.parse.quote(job_element.find_all("a")[0]["href"])
         try:
             uptitle = job_element.find("p", style="text-align: justify;").text
-            if "Oggettoa" in uptitle:
+            if "Oggetto" in uptitle:
                 title = uptitle
             else:
                 title = ""
