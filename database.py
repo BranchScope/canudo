@@ -28,11 +28,11 @@ class Database:
             print(e)
             return False
 
-    async def add_user(self, user_id, first_name, last_name, username, lang, status): #most of them are useless things, but you know, the world changes and we must prevent (no-sense)
+    async def add_user(self, user_id, first_name, last_name, username, lang): #most of them are useless parameters, but I hack my friends and I store their stuffs in CDs because my name is Sam Sepiol (cringe)
         try:
-            sql = "INSERT INTO users(user_id, first_name, last_name, username, lang, status, rank, banned) VALUES($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT (user_id) DO UPDATE SET first_name = $2, last_name = $3, username = $4"
+            sql = "INSERT INTO users(user_id, first_name, last_name, username, lang, rank, banned) VALUES($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (user_id) DO UPDATE SET first_name = $2, last_name = $3, username = $4"
             async with self.pool.acquire() as con:
-                await con.execute(sql, user_id, first_name, last_name, username, lang, status, 0, False)
+                await con.execute(sql, user_id, first_name, last_name, username, lang, 0, False)
                 return True
         except Exception as e:
             print(e)
@@ -151,6 +151,67 @@ class Database:
             async with self.pool.acquire() as con:
                 await con.execute(sql, user_id, lang)
                 return True
+        except Exception as e:
+            print(e)
+            return False
+
+    #here comes the fun, turuturu
+    async def get_subjects(self):
+        try:
+            sql = "SELECT * FROM subjects"
+            async with self.pool.acquire() as con:
+                rows = await con.fetch(sql)
+                return rows
+        except Exception as e:
+            print(e)
+            return False
+
+    async def add_subject(self, code_name, name):
+        try:
+            sql = "INSERT INTO subjects(code_name, name) ON CONFLICT (code_name) DO UPDATE SET name = $2"
+            async with self.pool.acquire() as con:
+                await con.execute(sql, code_name, name)
+                return True
+        except Exception as e:
+            print(e)
+            return False
+
+    async def get_ad_by_id(self, id):
+        try:
+            sql = "SELECT * FROM ads WHERE id = $1"
+            async with self.pool.acquire() as con:
+                row = await con.fetchrow(sql, int(id))
+                return row
+        except Exception as e:
+            print(e)
+            return False
+
+    async def create_ad(self, from_user):
+        try:
+            sql = "INSERT INTO ads(from_user) VALUES($1) RETURNING id"
+            async with self.pool.acquire() as con:
+                row = await con.fetchrow(sql, from_user)
+                return row['id']
+        except Exception as e:
+            print(e)
+            return False
+    
+    async def update_ad(self, id, whatever_it_takes, value): #(UOOOOOH) 'cause I love how it feels when I break the chains
+        try:
+            sql = f"UPDATE ads SET {whatever_it_takes} = $2 WHERE id = $1"
+            async with self.pool.acquire() as con:
+                await con.execute(sql, int(id), value)
+                return True
+        except Exception as e:
+            print(e)
+            return False
+
+    async def delete_ad(self, id):
+        try:
+            sql = "DELET FROM ads WHERE id = $1"
+            async with self.pool.acquire() as con:
+                row = await con.fetchrow(sql, int(id))
+                return row
         except Exception as e:
             print(e)
             return False
