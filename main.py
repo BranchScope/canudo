@@ -3,9 +3,10 @@ from pyrogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineK
 from config import API_ID, API_HASH, BOT_TOKEN, LOG_CHANNEL, ER_CANALO
 from database import Database
 from strings import STRINGS as strings
-import asyncio
+import asyncio, re, phonenumbers
 
 db = Database()
+pfx = ["!", ";", ".", ",", "-", "?", "*", "+", "#", "~", "_", "^", "/", ">"]
 app = Client("picciottocanudobot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 
 #mega pippone for check banned users and add/log new ones
@@ -26,17 +27,20 @@ async def check_banana_message(client, message):
         await message.continue_propagation()
 
 #the freaking frucking terroning start
-@app.on_message(filters.command("start", ["/"]) & filters.private)
+@app.on_message(filters.command("start", pfx) & filters.private)
 async def start_command(client: Client, message: Message):
     await db.set_status(message.from_user.id, "")
     keyboard = InlineKeyboardMarkup(
         [
             [
                 InlineKeyboardButton(strings["write_ad_btn"], callback_data="write_ad")
+            ],
+            [
+                InlineKeyboardButton(strings["source_code_btn"], url="https://github.com/BranchScope/canudo")
             ]
         ]
     )
-    await message.reply_text(strings["start"], reply_markup=keyboard)
+    await message.reply_text(strings["start"], reply_markup=keyboard, disable_web_page_preview=True)
     await message.continue_propagation()
 
 #set_bookname handler
@@ -49,6 +53,7 @@ async def set_bookname_handler(client: Client, message: Message):
         await db.set_status(message.from_user.id, f"ad:{ad_id}")
         buttons = [[InlineKeyboardButton(f"{i} 🔘", f"trigger_year:{i}")] for i in range(1, 6)] #hardcoded to false because it's the first and unique send_message
         buttons.append([InlineKeyboardButton(strings["done"], callback_data="years_ok")])
+        buttons.append([InlineKeyboardButton(strings["cancel_ad_btn"], callback_data=f"cancel_ad/ad_id:{ad_id}")])
         keyboard = InlineKeyboardMarkup(buttons)
         await message.reply_text(strings["ad_years_selection"], reply_markup=keyboard)
     elif "set_contacts" in status:
@@ -56,9 +61,17 @@ async def set_bookname_handler(client: Client, message: Message):
         try:
             contacts = message.text.splitlines()
             c_array = []
-            for contact in contacts:
+            for contact in contacts: #very bad stuffs here, please don't try this at home
                 social = contact.split(" - ")[0]
                 url = contact.split(" - ")[1]
+                #I mean, if you are the king of regexes and you can help me, open a PR ¯\_(ツ)_/¯
+                try:
+                    mh = phonenumbers.parse(url, "IT")
+                    if phonenumbers.is_valid_number(mh):
+                        social = url
+                        url = f"tel:{url}"
+                except:
+                    pass
                 c_array.append([social, url])
             await db.update_ad(ad_id, "contacts", c_array)
             await db.set_status(message.from_user.id, f"ad:{ad_id}")
@@ -68,7 +81,7 @@ async def set_bookname_handler(client: Client, message: Message):
                         InlineKeyboardButton(strings["send_ad_btn"], callback_data="send_ad")
                     ],
                     [
-                        InlineKeyboardButton(strings["cancel_ad_btn"], callback_data="cancel_ad")
+                        InlineKeyboardButton(strings["cancel_ad_btn"], callback_data=f"cancel_ad/ad_id:{ad_id}")
                     ]
                 ]
             )
@@ -87,6 +100,7 @@ async def callbacks_handler(client: Client, query: CallbackQuery):
         await db.set_status(query.from_user.id, f"ad:{ad_id}")
         subjects = await db.get_subjects()
         buttons = [[InlineKeyboardButton(x['name'], f"set_ad_subject:{x['code_name']}")] for x in subjects]
+        buttons.append([InlineKeyboardButton(strings["cancel_ad_btn"], callback_data=f"cancel_ad/ad_id:{ad_id}")])
         keyboard = InlineKeyboardMarkup(buttons)
         await query.message.edit(strings["ad_subject_selection"], reply_markup=keyboard)
         await query.answer()
@@ -96,6 +110,13 @@ async def callbacks_handler(client: Client, query: CallbackQuery):
             subject = query.data.split(":")[-1]
             await db.update_ad(ad_id, "subject", subject)
             await db.set_status(query.from_user.id, f"{status}/set_bookname") #from bad to badder (cit.)
+            keyboard = InlineKeyboardMarkup(
+                [
+                    [
+                        InlineKeyboardButton(strings["cancel_ad_btn"], callback_data=f"cancel_ad/ad_id:{ad_id}")
+                    ]
+                ]
+            )
             await query.message.edit(strings["ad_bookname_imposteiscion"])
             await query.answer()
         elif "trigger_year" in query.data: #if it works, don't touch it (even if the codebase makes Topolino put his hands in his eyes)
@@ -103,38 +124,136 @@ async def callbacks_handler(client: Client, query: CallbackQuery):
             years = [year for year in ad['years']] if ad['years'] is not None else []
             year = int(query.data.split(":")[1])
             years.append(year) if year not in years else years.remove(year)
+            years.sort()
             await db.update_ad(ad_id, "years", years)
             ad = await db.get_ad_by_id(ad_id)
             years = ad['years']
             buttons = [[InlineKeyboardButton(f"{i} {'🟢' if i in years else '🔘'}", f"trigger_year:{i}")] for i in range(1, 6)]
             buttons.append([InlineKeyboardButton(strings["done"], callback_data="years_ok")])
+            buttons.append([InlineKeyboardButton(strings["cancel_ad_btn"], callback_data=f"cancel_ad/ad_id:{ad_id}")])
             keyboard = InlineKeyboardMarkup(buttons)
             await query.message.edit(strings["ad_years_selection"], reply_markup=keyboard)
             await query.answer()
         elif query.data == "years_ok":
             await db.set_status(query.from_user.id, f"{status}/set_contacts")
+            keyboard = InlineKeyboardMarkup(
+                [
+                    [
+                        InlineKeyboardButton(strings["cancel_ad_btn"], callback_data=f"cancel_ad/ad_id:{ad_id}")
+                    ]
+                ]
+            )
             await query.message.edit(strings["ad_contacts_imposteiscion"])
             await query.answer()
         elif query.data == "send_ad":
             await db.set_status(query.from_user.id, "")
             ad = await db.get_ad_by_id(ad_id)
-            #parsing stuffs
-            msg = await app.send_message(ER_CANALO, ad["book"]) #just for testing, i'll continue it later ma friend so stanco
+            contacts = []
+            for social, url in ad['contacts']:
+                contacts.append(f"<a href='{url}'>{social}</a>")
+            #and the award for the worst line of code goes to:
+            txt = strings["ad"].replace("{BOOK_NAME}", ad['book']).replace("{SUBJECT}", (await db.get_subject(ad['subject']))).replace("{YEARS}", '°, '.join(str(year) for year in ad['years']) + "°" if ad['years'] is not None else "Non definito").replace("{CONTACTS}", ', '.join(contacts)).replace("{FROM_USER_ID}", str(ad['from_user'])).replace("{FROM_USER_NAME}", (await db.get_user(ad['from_user']))['first_name'])
+            msg = await app.send_message(ER_CANALO, txt)
             keyboard = InlineKeyboardMarkup(
                 [
                     [
                         InlineKeyboardButton(strings["url_btn"], url=f"t.me/c/{abs(ER_CANALO + int(1e12))}/{msg.id}")
+                    ],
+                    [
+                        InlineKeyboardButton(strings["cancel_ad_btn"], callback_data=f"cancel_ad/ad_id:{ad_id}/message_id:{msg.id}")
                     ]
                 ]
             )
-            await query.message.edit(strings["congrats"], reply_markup=keyboard)
+            yay = await query.message.edit(strings["congrats"], reply_markup=keyboard)
+            await yay.pin()
             await query.answer()
+    if "cancel_ad" in query.data:
+        p = query.data.split("/")
+        ad_id = int(p[1].split(":")[1])
+        ad = await db.get_ad_by_id(ad_id)
+        if ad['from_user'] == query.from_user.id: #cybersecurity expert stuffs here
+            await db.set_status(query.from_user.id, "")
+            await db.delete_ad(ad_id)
+            if "message_id" in query.data:
+                await app.delete_messages(ER_CANALO, int(p[2].split(":")[1]))
+            keyboard = InlineKeyboardMarkup(
+                [
+                    [
+                        InlineKeyboardButton(strings["write_ad_btn"], callback_data="write_ad")
+                    ],
+                    [
+                        InlineKeyboardButton(strings["source_code_btn"], url="https://github.com/BranchScope/canudo")
+                    ]
+                ]
+            )
+            await query.message.edit(strings["start"], reply_markup=keyboard, disable_web_page_preview=True)
+            await query.answer()
+
 #ADMIN RELATED STUFFS, FATTI LI CAZZI TUA <3
-@app.on_message(filters.command("magic", ["/"]) & filters.private)
+@app.on_message(filters.command("magic", pfx) & filters.private)
 async def magical_tests(client: Client, message: Message):
     rank = await db.get_user_rank(message.from_user.id)
     if rank > 0:
         await message.reply_text("yeah my man", quote=True)
+    await message.continue_propagation()
+
+@app.on_message(filters.command("subs", pfx) & filters.private)
+async def subs_command(client: Client, message: Message):
+    rank = await db.get_user_rank(message.from_user.id)
+    if rank > 0:
+        subs = await db.get_subs()
+        await message.reply_text(f"📊 <b>Total users</b>\n{subs}", quote=True)
+    await message.continue_propagation()
+
+
+@app.on_message(filters.command(["post"], pfx) & filters.private)
+async def post(client: Client, message: Message):
+    rank = await db.get_user_rank(message.from_user.id)
+    if rank > 0:
+        regex = r"(?s)(?<=post )(.*$)"
+        matches = re.search(regex, message.text)
+        if matches:
+            text = matches.group()
+        users = await db.get_users()
+        for user in users:
+            try:
+                await app.send_message(user['user_id'], text, disable_web_page_preview=True)
+            except Exception as e:
+                print(e)
+    await message.continue_propagation()
+
+@app.on_message(filters.command(["ban"], pfx) & filters.private)
+async def ban_cmd(client: Client, message: Message):
+    rank = await db.get_user_rank(message.from_user.id)
+    if rank > 0:
+        if len(message.command) == 2:
+            if message.command[1].isdigit():
+                ban = await db.ban_user(message.command[1])
+                if ban is True:
+                    await message.reply_text("User banned!", quote=True)
+                else:
+                    await message.reply_text("User not found.", quote=True)
+            else:
+                await message.reply_text("Invalid user ID.", quote=True)
+        else:
+            await message.reply_text("Are you dumb or like what?", quote=True)
+    await message.continue_propagation()
+
+@app.on_message(filters.command(["unban"], pfx) & filters.private)
+async def unban_cmd(client: Client, message: Message):
+    rank = await db.get_user_rank(message.from_user.id)
+    if rank > 0:
+        if len(message.command) == 2:
+            if message.command[1].isdigit():
+                unban = await db.unban_user(message.command[1])
+                if unban is True:
+                    await message.reply_text("User unbanned!", quote=True)
+                else:
+                    await message.reply_text("User not found.", quote=True)
+            else:
+                await message.reply_text("Invalid user ID.", quote=True)
+        else:
+            await message.reply_text("Are you dumb or like what?", quote=True)
     await message.continue_propagation()
 
 #the engine starter

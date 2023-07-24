@@ -166,6 +166,16 @@ class Database:
             print(e)
             return False
 
+    async def get_subject(self, code_name):
+        try:
+            sql = "SELECT name FROM subjects WHERE code_name = $1"
+            async with self.pool.acquire() as con:
+                row = await con.fetchrow(sql, code_name)
+                return row['name']
+        except Exception as e:
+            print(e)
+            return None
+
     async def add_subject(self, code_name, name):
         try:
             sql = "INSERT INTO subjects(code_name, name) ON CONFLICT (code_name) DO UPDATE SET name = $2"
@@ -208,7 +218,7 @@ class Database:
 
     async def delete_ad(self, id):
         try:
-            sql = "DELET FROM ads WHERE id = $1"
+            sql = "DELETE FROM ads WHERE id = $1"
             async with self.pool.acquire() as con:
                 row = await con.fetchrow(sql, int(id))
                 return row

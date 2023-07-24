@@ -1,6 +1,6 @@
 #telegram related stuffs
 API_ID = 123456
-API_HASH = "respiri piano per non far rumore, ti addormenti di sera e ti risvegli col sole"
+API_HASH = "non è tanto chi sei, quanto quello che fai che ti qualifica"
 BOT_TOKEN = "5171831004:AAH89EXSzyThNSiHuAy8oRSi-qHLAStxi6o" #revoked :D
 ER_CANALO = -1001513949475
 
