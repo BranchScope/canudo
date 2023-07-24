@@ -1,4 +1,4 @@
 FROM python:latest
-RUN pip install pyrogram tgcrypto asyncpg asyncio phonenumbers
-ADD . .
+RUN pip install --no-cache-dir pyrogram tgcrypto asyncpg asyncio phonenumbers
+COPY . .
 ENTRYPOINT ["python", "main.py"]

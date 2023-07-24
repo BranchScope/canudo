@@ -8,7 +8,7 @@ This repo shares with you the infrastructure behind [Canudo News](https://t.me/+
 - Optimization and a more readable code
 
 ### 📚 Canudo Libri [online]
-[Deploy it yourself](DEPLOY.md)\
+[DEPLOY IT YOURSELF](DEPLOY.md)\
 #TODO:
 - Set up graphics
 - Optimize the code (maybe)

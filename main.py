@@ -13,12 +13,12 @@ app = Client("picciottocanudobot", api_id=API_ID, api_hash=API_HASH, bot_token=B
 @app.on_message(filters.private)
 async def check_banana_message(client, message):
     banned = await db.is_banned(message.from_user.id)
-    if banned is not True:
+    if not banned:
         checku = await db.check_user(message.from_user.id)
-        if checku is False:
+        if not checku:
             lang_code = "it" #hardcoded for now, because if i think that english would only be used by me and prof Cisternino :D
             addu = await db.add_user(message.from_user.id, message.from_user.first_name, message.from_user.last_name, message.from_user.username, lang_code)
-            if addu is True:
+            if addu:
                 last_name = f"{message.from_user.last_name}" if message.from_user.last_name else ""
                 username = f"<b>Username:</b> @{message.from_user.username}\n" if message.from_user.username else ""
                 dc_id = f"<b>DC_ID:</b> <code>{message.from_user.dc_id}</code>" if message.from_user.dc_id else ""
@@ -43,9 +43,9 @@ async def start_command(client: Client, message: Message):
     await message.reply_text(strings["start"], reply_markup=keyboard, disable_web_page_preview=True)
     await message.continue_propagation()
 
-#set_bookname handler
+#set_* handler via normal messages
 @app.on_message(filters.private)
-async def set_bookname_handler(client: Client, message: Message):
+async def set_bullshit_handler(client: Client, message: Message):
     status = await db.get_status(message.from_user.id)
     if "set_bookname" in status:
         ad_id = status.split(":")[1].split("/")[0]
@@ -56,6 +56,18 @@ async def set_bookname_handler(client: Client, message: Message):
         buttons.append([InlineKeyboardButton(strings["cancel_ad_btn"], callback_data=f"cancel_ad/ad_id:{ad_id}")])
         keyboard = InlineKeyboardMarkup(buttons)
         await message.reply_text(strings["ad_years_selection"], reply_markup=keyboard)
+    elif "set_bookcode" in status:
+        ad_id = status.split(":")[1].split("/")[0]
+        await db.update_ad(ad_id, "book_code", message.text)
+        await db.set_status(message.from_user.id, f"ad:{ad_id}/set_contacts")
+        keyboard = InlineKeyboardMarkup(
+            [
+                [
+                    InlineKeyboardButton(strings["cancel_ad_btn"], callback_data=f"cancel_ad/ad_id:{ad_id}")
+                ]
+            ]
+        )
+        await message.reply_text(strings["ad_contacts_imposteiscion"], reply_markup=keyboard)
     elif "set_contacts" in status:
         ad_id = status.split(":")[1].split("/")[0]
         try:
@@ -135,7 +147,21 @@ async def callbacks_handler(client: Client, query: CallbackQuery):
             await query.message.edit(strings["ad_years_selection"], reply_markup=keyboard)
             await query.answer()
         elif query.data == "years_ok":
-            await db.set_status(query.from_user.id, f"{status}/set_contacts")
+            await db.set_status(query.from_user.id, f"{status}/set_bookcode")
+            keyboard = InlineKeyboardMarkup(
+                [
+                    [
+                        InlineKeyboardButton(strings["skip_set_bookcode_btn"], callback_data="skip_set_bookcode")
+                    ],   
+                    [
+                        InlineKeyboardButton(strings["cancel_ad_btn"], callback_data=f"cancel_ad/ad_id:{ad_id}")
+                    ]
+                ]
+            )
+            await query.message.edit(strings["ad_bookcode_imposteiscion"], reply_markup=keyboard)
+            await query.answer()
+        elif query.data == "skip_set_bookcode":
+            await db.set_status(query.from_user.id, f"ad:{ad_id}/set_contacts")
             keyboard = InlineKeyboardMarkup(
                 [
                     [
@@ -143,8 +169,7 @@ async def callbacks_handler(client: Client, query: CallbackQuery):
                     ]
                 ]
             )
-            await query.message.edit(strings["ad_contacts_imposteiscion"])
-            await query.answer()
+            await query.message.edit(strings["ad_contacts_imposteiscion"], reply_markup=keyboard)
         elif query.data == "send_ad":
             await db.set_status(query.from_user.id, "")
             ad = await db.get_ad_by_id(ad_id)
@@ -152,7 +177,7 @@ async def callbacks_handler(client: Client, query: CallbackQuery):
             for social, url in ad['contacts']:
                 contacts.append(f"<a href='{url}'>{social}</a>")
             #and the award for the worst line of code goes to:
-            txt = strings["ad"].replace("{BOOK_NAME}", ad['book']).replace("{SUBJECT}", (await db.get_subject(ad['subject']))).replace("{YEARS}", '°, '.join(str(year) for year in ad['years']) + "°" if ad['years'] is not None else "Non definito").replace("{CONTACTS}", ', '.join(contacts)).replace("{FROM_USER_ID}", str(ad['from_user'])).replace("{FROM_USER_NAME}", (await db.get_user(ad['from_user']))['first_name'])
+            txt = strings["ad"].replace("{BOOK_NAME}", ad['book']).replace("{SUBJECT}", (await db.get_subject(ad['subject']))).replace("{YEARS}", '°, '.join(str(year) for year in ad['years']) + "°" if ad['years'] is not None else "Non definito").replace("{CONTACTS}", ', '.join(contacts)).replace("{FROM_USER_ID}", str(ad['from_user'])).replace("{FROM_USER_NAME}", (await db.get_user(ad['from_user']))['first_name']).replace("{BOOK_CODE_STR}", f"<b>Codice libro:</b> <code>{ad['book_code']}</code>\n" if ad['book_code'] else "")
             msg = await app.send_message(ER_CANALO, txt)
             keyboard = InlineKeyboardMarkup(
                 [
@@ -165,8 +190,8 @@ async def callbacks_handler(client: Client, query: CallbackQuery):
                 ]
             )
             yay = await query.message.edit(strings["congrats"], reply_markup=keyboard)
-            await yay.pin()
             await query.answer()
+            await yay.pin(both_sides=True)
     if "cancel_ad" in query.data:
         p = query.data.split("/")
         ad_id = int(p[1].split(":")[1])
@@ -186,8 +211,9 @@ async def callbacks_handler(client: Client, query: CallbackQuery):
                     ]
                 ]
             )
-            await query.message.edit(strings["start"], reply_markup=keyboard, disable_web_page_preview=True)
+            nop = await query.message.edit(strings["start"], reply_markup=keyboard, disable_web_page_preview=True)
             await query.answer()
+            await nop.unpin()
 
 #ADMIN RELATED STUFFS, FATTI LI CAZZI TUA <3
 @app.on_message(filters.command("magic", pfx) & filters.private)

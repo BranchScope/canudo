@@ -32,6 +32,7 @@ CREATE TABLE public.ads (
     id integer NOT NULL,
     subject character varying,
     book character varying,
+    book_code character varying,
     years integer[],
     contacts character varying[],
     from_user bigint
