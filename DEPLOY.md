@@ -17,4 +17,4 @@ I don't actually know how to set up this docker container in the right way, so d
 - `docker-compose logs` or run the `up` command without the flag `-d` (just in case you didn't know how to use docker lmao)
 
 ## Contribution
-[Contact me](t.me/BranchScope) or just make a PR.
+[Contact me](https://t.me/BranchScope) or just make a PR.
