@@ -3,7 +3,7 @@ from pyrogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineK
 from config import API_ID, API_HASH, BOT_TOKEN, LOG_CHANNEL, ER_CANALO
 from database import Database
 from strings import STRINGS as strings
-import asyncio, re, phonenumbers
+import asyncio, phonenumbers
 
 db = Database()
 pfx = ["!", ";", ".", ",", "-", "?", "*", "+", "#", "~", "_", "^", "/", ">"]
@@ -124,7 +124,7 @@ async def callbacks_handler(client: Client, query: CallbackQuery):
             years = [year for year in ad['years']] if ad['years'] is not None else []
             year = int(query.data.split(":")[1])
             years.append(year) if year not in years else years.remove(year)
-            years.sort()
+            years.sort() #e mamt
             await db.update_ad(ad_id, "years", years)
             ad = await db.get_ad_by_id(ad_id)
             years = ad['years']

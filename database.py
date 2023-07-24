@@ -30,9 +30,9 @@ class Database:
 
     async def add_user(self, user_id, first_name, last_name, username, lang): #most of them are useless parameters, but I hack my friends and I store their stuffs in CDs because my name is Sam Sepiol (cringe)
         try:
-            sql = "INSERT INTO users(user_id, first_name, last_name, username, lang, rank, banned) VALUES($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (user_id) DO UPDATE SET first_name = $2, last_name = $3, username = $4"
+            sql = "INSERT INTO users(user_id, first_name, last_name, username, lang, rank, status, banned) VALUES($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT (user_id) DO UPDATE SET first_name = $2, last_name = $3, username = $4"
             async with self.pool.acquire() as con:
-                await con.execute(sql, user_id, first_name, last_name, username, lang, 0, False)
+                await con.execute(sql, user_id, first_name, last_name, username, lang, 0, "", False)
                 return True
         except Exception as e:
             print(e)
