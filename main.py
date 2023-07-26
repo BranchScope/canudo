@@ -76,6 +76,9 @@ async def set_bullshit_handler(client: Client, message: Message):
             for contact in contacts: #very bad stuffs here, please don't try this at home
                 social = contact.split(" - ")[0]
                 url = contact.split(" - ")[1]
+                if "@" in url:
+                    social = url
+                    url = ""
                 #I mean, if you are the king of regexes and you can help me, open a PR ¯\_(ツ)_/¯
                 try:
                     mh = phonenumbers.parse(url, "IT")
@@ -83,7 +86,9 @@ async def set_bullshit_handler(client: Client, message: Message):
                         social = url
                         url = f"tel:{url}"
                 except:
-                    pass
+                    if social.lower() == "numero":
+                        social = url
+                        url = f"tel:{url}"
                 c_array.append([social, url])
             await db.update_ad(ad_id, "contacts", c_array)
             await db.set_status(message.from_user.id, f"ad:{ad_id}")
@@ -129,7 +134,7 @@ async def callbacks_handler(client: Client, query: CallbackQuery):
                     ]
                 ]
             )
-            await query.message.edit(strings["ad_bookname_imposteiscion"])
+            await query.message.edit(strings["ad_bookname_imposteiscion"], reply_markup=keyboard)
             await query.answer()
         elif "trigger_year" in query.data: #if it works, don't touch it (even if the codebase makes Topolino put his hands in his eyes)
             ad = await db.get_ad_by_id(ad_id)
