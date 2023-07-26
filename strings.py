@@ -16,5 +16,5 @@ STRINGS = {
     "cancel_ad_btn": "Cancella annuncio",
     "url_btn": "Link annuncio",
     "congrats": "Fatto, puoi trovare e gestire il tuo annuncio cliccando sul bottone qua sotto (ti fisso anche il messaggio così lo trovi subito):",
-    "ad": "<b>NUOVO ANNUNCIO!</b>\n\n<b>Nome del libro:</b> {BOOK_NAME}\n{BOOK_CODE_STR}<b>Materia:</b> {SUBJECT}\n<b>Anno/i:</b> {YEARS}\n<b>Contatti:</b> {CONTACTS}\n\nPubblicato da <a href='tg://user?id={FROM_USER_ID}'>{FROM_USER_NAME}</a>"
+    "ad": "❗️<b>NUOVO ANNUNCIO!</b>❗️\n\n<b>Nome del libro:</b> {BOOK_NAME}\n{BOOK_CODE_STR}<b>Materia:</b> {SUBJECT}\n<b>Anno/i:</b> {YEARS}\n<b>Contatti:</b> {CONTACTS}\n\nPubblicato da <a href='tg://user?id={FROM_USER_ID}'>{FROM_USER_NAME}</a>"
 }
