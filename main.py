@@ -86,7 +86,7 @@ async def set_bullshit_handler(client: Client, message: Message):
                         social = url
                         url = f"tel:{url}"
                 except:
-                    if social.lower() == "numero":
+                    if "numero" in social.lower():
                         social = url
                         url = f"tel:{url}"
                 c_array.append([social, url])

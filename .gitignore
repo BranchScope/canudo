@@ -2,4 +2,3 @@ __pycache__
 *.session
 *.session-journal
 database/postgres
-
