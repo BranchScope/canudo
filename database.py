@@ -1,5 +1,6 @@
-from config import DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME
-import asyncpg
+import os, asyncpg
+
+DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME = os.getenv('DB_HOST'), os.getenv('DB_USERNAME'), os.getenv('DB_PASSWORD'), os.getenv('DB_NAME')
 
 #the databas class, very magical cool stuff here
 class Database:

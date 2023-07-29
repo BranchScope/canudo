@@ -1,10 +1,10 @@
 from pyrogram import Client, filters
 from pyrogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
-from config import API_ID, API_HASH, BOT_TOKEN, LOG_CHANNEL, ER_CANALO
 from database import Database
 from strings import STRINGS as strings
-import asyncio, phonenumbers
+import os, asyncio, phonenumbers
 
+API_ID, API_HASH, BOT_TOKEN, LOG_CHANNEL, ER_CANALO = os.getenv('API_ID'), os.getenv('API_HASH'), os.getenv('BOT_TOKEN'), int(os.getenv('LOG_CHANNEL')), int(os.getenv('ER_CANALO'))
 db = Database()
 pfx = ["!", ";", ".", ",", "-", "?", "*", "+", "#", "~", "_", "^", "/", ">"]
 app = Client("picciottocanudobot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
@@ -83,6 +83,9 @@ async def set_bullshit_handler(client: Client, message: Message):
                 try:
                     mh = phonenumbers.parse(url, "IT")
                     if phonenumbers.is_valid_number(mh):
+                        social = url
+                        url = f"tel:{url}"
+                    elif "numero" in social.lower():
                         social = url
                         url = f"tel:{url}"
                 except:
