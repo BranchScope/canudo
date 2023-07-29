@@ -1,4 +1,4 @@
 __pycache__
 *.session
 *.session-journal
-database/postgres
+canudo_libri/database/postgres
