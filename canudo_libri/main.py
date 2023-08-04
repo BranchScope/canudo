@@ -111,6 +111,13 @@ async def set_bullshit_handler(client: Client, message: Message):
             await message.reply_text(strings["ad_contacts_imposteiscion_error"])
     await message.continue_propagation()
 
+#forse in amore le rose non si usano più
+@app.on_callback_query()
+async def check_banana_query(client, query):
+    banned = await db.is_banned(query.from_user.id)
+    if not banned:
+        await query.continue_propagation()
+
 #callbackquery handler
 @app.on_callback_query()
 async def callbacks_handler(client: Client, query: CallbackQuery):
