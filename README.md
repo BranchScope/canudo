@@ -13,7 +13,7 @@ This repo shares with you the infrastructure behind [Canudo News](https://t.me/+
 - Optimize the code (maybe)
 - Instagram? MHHH, hehehe... 👀
 
-### 🎮 FantaCanudo [development]
+### 🎮 FantaClasse [development]
 👀👀👀
 
 ## 📨 Contacts
