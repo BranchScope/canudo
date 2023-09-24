@@ -4,8 +4,8 @@ import { Inter } from 'next/font/google'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata = {
-  title: 'FantaCanudo',
-  description: 'Il primo FantaScuola digitale in Italia!',
+  title: 'FantaClasse',
+  description: 'Il primo FantaClasse digitale in Italia!',
 }
 
 export default function RootLayout({ children }) {
