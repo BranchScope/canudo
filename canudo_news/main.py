@@ -3,12 +3,13 @@ from bs4 import BeautifulSoup
 
 URL = "https://www.canudo.edu.it"
 TOKEN = "REDACTED"
-page = requests.get(URL + "/index.php")
+CHAT_ID = -1001848463147
 
+page = requests.get(URL + "/index.php")
 soup = BeautifulSoup(page.content, "html.parser")
 job_elements = soup.find_all("div", class_="items-leading clearfix")
 
-def send_message(chat_id: int, text: str, keyboard: dict | None) -> dict:
+def send_message(chat_id: int, text: str, keyboard: dict | None) -> str:
     api_url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
     data = {
         "chat_id": chat_id,
@@ -40,7 +41,6 @@ for job_element in job_elements:
             f.write(link + "\n")
 
         try:
-
             uptitle = job_element.find("p", style="text-align: justify;").text
             if uptitle and "Oggetto" in uptitle:
                 title = uptitle.lstrip()
@@ -51,6 +51,6 @@ for job_element in job_elements:
             title = ""
             
         keyboard = {"inline_keyboard": [[{"text": "📎 Balza sul sito", "url": link}]]}
-        print(send_message(1876496621, f"<b>📍{com} </b> <i>{title}</i>", keyboard))
+        send_message(CHAT_ID, f"<b>📍{com} </b> <i>{title}</i>", keyboard)
     except Exception as e:
         print(f"Come a little closer, then you'll see (come on, come on, come on): {e}")
