@@ -30,8 +30,9 @@ for job_element in job_elements:
         with open("last.txt", "r") as f:
             content = f.read().splitlines(True)
 
-        if content[-1] == link + "\n":
-            break
+        for line in content:
+            if line == link + "\n":
+                raise Exception("Arrapt cuss")
 
         if len(content) >= 4:
             with open("last.txt", "w") as f:
