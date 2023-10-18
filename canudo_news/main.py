@@ -44,9 +44,6 @@ def scrape_com():
             #Sometimes I believe, at times I'm rational
             #I can fly high, I can go low
             """Today I got a million, tomorrow, I don't know"""
-            with open("last.txt", "w") as f:
-                f.writelines(content[1:])
-            
             with open("last.txt", "a") as f:
                 f.write(link + "\n")
 
