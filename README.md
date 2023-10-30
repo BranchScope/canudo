@@ -6,7 +6,7 @@ This repo shares with you the infrastructure behind [Canudo News](https://t.me/+
 [DEPLOY IT YOURSELF](canudo_news/DEPLOY.md)\
 Newsing about new news in the news website of canudo.\
 #TODO:
-- Duplicate when a post is pinned on the website ✅
+- Duplicate when a post is pinned on the website (https://imgur.com/a/qh1yIyq)✅
 - Optimization and a more readable code
 
 ### 📚 Canudo Libri [offline]
