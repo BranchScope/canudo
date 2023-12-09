@@ -1,4 +1,6 @@
-﻿using System.Net;
+﻿using System.Diagnostics;
+using System.Net;
+using System.Text.Json;
 using RestSharp;
 
 namespace canudo_news;
@@ -7,15 +9,16 @@ public static class BotApi
 {
     private const string Resource = "https://api.telegram.org/bot";
     private static readonly string? Token = Environment.GetEnvironmentVariable("TOKEN");
+    private static readonly RestClient Client = new RestClient(Resource + Token);
 
     private static async Task<dynamic?> GetMe()
     {
-        var client = new RestClient(Resource + Token);
         var request = new RestRequest("getMe", Method.Post);
-        var response = await client.GetAsync(request);
+        var response = await Client.ExecutePostAsync(request);
         if (response.StatusCode == HttpStatusCode.OK)
         {
-            return response.Content;
+            Console.WriteLine(response.Content);
+            return JsonSerializer.Deserialize<Response>(response.Content ?? throw new MissingFieldException());
         }
         else
         {
@@ -26,15 +29,15 @@ public static class BotApi
 
     private static async Task<dynamic?> SendMessage(int chatId, string text)
     {
-        var client = new RestClient(Resource + Token);
         var request = new RestRequest("sendMessage", Method.Post);
-        var param = new { chat_id = chatId, text = text };
+        var param = new { chat_id = chatId, text };
         Console.WriteLine(ObjectDumper.Dump(param));
         request.AddJsonBody(param);
-        var response = await client.GetAsync(request);
+        var response = await Client.GetAsync(request);
         if (response.StatusCode == HttpStatusCode.OK)
         {
-            return response.Content;
+            Console.WriteLine(response.Content);
+            return JsonSerializer.Deserialize<Response>(response.Content ?? throw new MissingFieldException());
         }
         else
         {
@@ -46,6 +49,7 @@ public static class BotApi
     public static async Task Test()
     {
         var test = await SendMessage(1876496621, "Sent with C#, but can't see more sharp as said in the docs.");
+        //var test = await GetMe();
         Console.WriteLine($"The output: {test}");
     }
     

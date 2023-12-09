@@ -7,7 +7,7 @@ internal static class Umbrella
 
     private const string Resource = "https://api.telegram.org/bot";
 
-    private static readonly List<string?> AllowedMethods = new List<string?>() { "getMe", "sendMessage" };
+    private static readonly List<string?> AllowedMethods = ["getMe", "sendMessage"];
 
     private static async Task MainZ()
     {
