@@ -31,7 +31,7 @@ public record From
 {
     [JsonPropertyName("id")] public int Id { get; init; }
     [JsonPropertyName("is_bot")] public bool IsBot { get; init; }
-    [JsonPropertyName("first_name")] public string FirstName { get; init; }
+    [JsonPropertyName("first_name")] public required string FirstName { get; init; }
     [JsonPropertyName("last_name")] public string? LastName { get; init; }
     [JsonPropertyName("username")] public string? Username { get; init; }
 }
@@ -42,5 +42,5 @@ public record Chat
     [JsonPropertyName("first_name")] public string FirstName { get; init; }
     [JsonPropertyName("last_name")] public string? LastName { get; init; }
     [JsonPropertyName("username")] public string? Username { get; init; }
-    [JsonPropertyName("type")] public string Type { get; init; }
+    [JsonPropertyName("type")] public required string Type { get; init; }
 }
