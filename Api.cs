@@ -21,14 +21,15 @@ public static class BotApi
         return JsonSerializer.Deserialize<Response>(response.Content ?? throw new MissingFieldException()) ?? throw new Exception("wtf!?");
     }
 
-    public static async Task<Response> SendMessage(int chatId, string text, Dictionary<string, List<List<Dictionary<string, string>>>> keyboard)
+    public static async Task<Response> SendMessage(long chatId, string text, Dictionary<string, List<List<Dictionary<string, string>>>>? keyboard = null)
     {
         var request = new RestRequest("sendMessage", Method.Post);
         var param = new
         {
             chat_id = chatId, 
             text, 
-            reply_markup = JsonSerializer.Serialize(keyboard)
+            reply_markup = JsonSerializer.Serialize(keyboard),
+            parse_mode = "HTML"
         };
         Console.WriteLine(ObjectDumper.Dump(param));
         request.AddJsonBody(param);
