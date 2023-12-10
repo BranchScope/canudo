@@ -21,10 +21,15 @@ public static class BotApi
         return JsonSerializer.Deserialize<Response>(response.Content ?? throw new MissingFieldException()) ?? throw new Exception("wtf!?");
     }
 
-    public static async Task<Response> SendMessage(int chatId, string text)
+    public static async Task<Response> SendMessage(int chatId, string text, Dictionary<string, List<List<Dictionary<string, string>>>> keyboard)
     {
         var request = new RestRequest("sendMessage", Method.Post);
-        var param = new { chat_id = chatId, text };
+        var param = new
+        {
+            chat_id = chatId, 
+            text, 
+            reply_markup = JsonSerializer.Serialize(keyboard)
+        };
         Console.WriteLine(ObjectDumper.Dump(param));
         request.AddJsonBody(param);
         var response = await Client.ExecutePostAsync(request);
@@ -33,7 +38,17 @@ public static class BotApi
 
     public static async Task Test()
     {
-        var test = await SendMessage(1876496621, "Sent with C#, but can't see more sharp as said in the docs.");
+        var button = new Dictionary<string, string>
+        {
+            { "url", "https://damettoluca.com" }, { "text", "diocristo" }
+        };
+        var keyboard = new Dictionary<string, List<List<Dictionary<string, string>>>>
+        {
+            {
+                "inline_keyboard", [[button]]
+            }
+        };
+        var test = await SendMessage(1876496621, "Sent with C#, but can't see more sharp as said in the docs.", keyboard);
         //var test = await GetMe();
         Console.WriteLine($"The output: {(test.Result?.MessageId != null ? test.Result.MessageId : test.Description)}");
     }
