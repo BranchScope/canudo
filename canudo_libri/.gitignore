@@ -1,3 +1,7 @@
-*.session
-*.session-journal
-database/postgres
+Database/postgres
+.idea
+bin/
+obj/
+/packages/
+riderModule.iml
+/_ReSharper.Caches/
