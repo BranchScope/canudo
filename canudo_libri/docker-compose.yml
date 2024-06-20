@@ -1,37 +1,42 @@
 services:
   bot:
-    build: .
+    image: bot
+    build:
+      context: .
+      dockerfile: Dockerfile
     environment:
-    #telegram
-      API_ID: 123456
-      API_HASH: "non è tanto chi sei, quanto quello che fai che ti qualifica"
-      BOT_TOKEN: "5171831004:AAH89EXSzyThNSiHuAy8oRSi-qHLAStxi6o" #revoked :D
-      ER_CANALO: -1001513949475
-      LOG_CHANNEL: -1001940482898
-    #database
-      DB_HOST: "database"
-      DB_USERNAME: "postgres"
-      DB_PASSWORD: "password" #very strong security here
-      DB_NAME: "picciottocanudobot"
+      POSTGRES_HOST: database
+      POSTGRES_USERNAME: ${POSTGRES_USERNAME}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DBNAME: ${POSTGRES_DBNAME}
+      TOKEN: ${TOKEN}
+      CHANNEL: ${CHANNEL}
+      LOG_CHANNEL: ${LOG_CHANNEL}
+    expose:
+      - 35139
+    ports:
+      - 35139:35139
+    volumes:
+      - ./files:/app/files
     depends_on:
       database:
         condition: service_healthy
-    links: 
-      - database
   database:
-    image: postgres:latest
+    image: postgres:alpine
     restart: always
     environment:
       PGUSER: postgres
-      POSTGRES_USERNAME: postgres
-      POSTGRES_PASSWORD: password
+      POSTGRES_USERNAME: ${POSTGRES_USERNAME}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     expose:
       - 5432
+    ports:
+      - 5432:5432
     volumes:
-      - ./database/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
-      - ./database/postgres:/var/lib/postgresql/data
+      - ./Database/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+      - ./Database/postgres:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready", "-d", "picciottocanudobot"]
+      test: [ "CMD-SHELL", "pg_isready", "-d", "picciottocanudobot" ]
       interval: 5s
       timeout: 10s
       retries: 5
