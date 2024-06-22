@@ -42,7 +42,7 @@ public class Database
         cmd.Parameters.AddWithValue("username", user.Username ?? "");
         cmd.Parameters.AddWithValue("lang", user.LanguageCode ?? "");
         cmd.Parameters.AddWithValue("status", "");
-        cmd.Parameters.AddWithValue("rank", "1");
+        cmd.Parameters.AddWithValue("rank", 1);
         cmd.Parameters.AddWithValue("banned", false);
         await cmd.PrepareAsync();
         var r = await cmd.ExecuteNonQueryAsync();
@@ -97,7 +97,7 @@ public class Database
 
         var user = new DBUser() { 
             FirstName = (string)dr[0], 
-            LastName = (string)dr[1]),
+            LastName = (string)dr[1],
             Username = (string)dr[2],
             Lang = (string)dr[3],
             Status = (string)dr[4],

@@ -6,18 +6,12 @@ services:
       dockerfile: Dockerfile
     environment:
       POSTGRES_HOST: database
-      POSTGRES_USERNAME: ${POSTGRES_USERNAME}
+      POSTGRES_USERNAME: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DBNAME: ${POSTGRES_DBNAME}
       TOKEN: ${TOKEN}
       CHANNEL: ${CHANNEL}
       LOG_CHANNEL: ${LOG_CHANNEL}
-    expose:
-      - 35139
-    ports:
-      - 35139:35139
-    volumes:
-      - ./files:/app/files
     depends_on:
       database:
         condition: service_healthy
@@ -26,7 +20,7 @@ services:
     restart: always
     environment:
       PGUSER: postgres
-      POSTGRES_USERNAME: ${POSTGRES_USERNAME}
+      POSTGRES_USERNAME: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     expose:
       - 5432
