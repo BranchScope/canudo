@@ -1,4 +1,5 @@
 ﻿using System.Runtime.InteropServices.JavaScript;
+using System.Text.Json;
 using Npgsql;
 using NpgsqlTypes;
 
@@ -27,7 +28,6 @@ public class Database
         const string query = "SELECT COUNT(*) FROM users WHERE user_id = @user_id";
         var cmd = new NpgsqlCommand(query, db);
         cmd.Parameters.AddWithValue("user_id", userId);
-        await cmd.PrepareAsync();
         var count = (long)await cmd.ExecuteScalarAsync();
         return count;
     }
@@ -44,16 +44,15 @@ public class Database
         cmd.Parameters.AddWithValue("status", "");
         cmd.Parameters.AddWithValue("rank", 1);
         cmd.Parameters.AddWithValue("banned", false);
-        await cmd.PrepareAsync();
         var r = await cmd.ExecuteNonQueryAsync();
         return r;
     }
 
-    public static async Task<int> GetSubs(NpgsqlConnection db)
+    public static async Task<long> GetSubs(NpgsqlConnection db)
     {
         const string query = "SELECT COUNT(*) FROM users";
         var cmd = new NpgsqlCommand(query, db);
-        var count = (int)await cmd.ExecuteScalarAsync();
+        var count = (long)await cmd.ExecuteScalarAsync();
         return count;
     }
 
@@ -67,17 +66,19 @@ public class Database
         {
             var element = new DBUser()
             {
-                FirstName = reader.GetString(0),
-                LastName = reader.GetString(1),
-                Username = reader.GetString(2),
-                Lang = reader.GetString(3),
-                Status = reader.GetString(4),
-                Rank = reader.GetInt32(5),
-                Banned = reader.GetBoolean(6),
+                UserId = reader.GetInt64(0),
+                FirstName = reader.GetString(1),
+                LastName = reader.GetString(2),
+                Username = reader.GetString(3),
+                Lang = reader.GetString(4),
+                Status = reader.GetString(5),
+                Rank = reader.GetInt32(6),
+                Banned = reader.GetBoolean(7),
             };
             results.Add(element);
         }
-
+        await reader.CloseAsync();
+        
         return results;
     }
 
@@ -86,26 +87,164 @@ public class Database
         const string query = "SELECT * FROM users WHERE user_id = @user_id";
         var cmd = new NpgsqlCommand(query, db);
         cmd.Parameters.AddWithValue("user_id", userId);
-        await cmd.PrepareAsync();
-        var dr = await cmd.ExecuteReaderAsync();
-        
-        if (dr.Read() == false)
+        var reader = await cmd.ExecuteReaderAsync();
+        var user = new DBUser();
+        while (await reader.ReadAsync())
         {
-            await dr.CloseAsync();
-            return [];
+            user = new DBUser()
+            { 
+                UserId = reader.GetInt64(0),
+                FirstName = reader.GetString(1),
+                LastName = reader.GetString(2),
+                Username = reader.GetString(3),
+                Lang = reader.GetString(4),
+                Status = reader.GetString(5),
+                Rank = reader.GetInt32(6),
+                Banned = reader.GetBoolean(7)
+            };
         }
-
-        var user = new DBUser() { 
-            FirstName = (string)dr[0], 
-            LastName = (string)dr[1],
-            Username = (string)dr[2],
-            Lang = (string)dr[3],
-            Status = (string)dr[4],
-            Rank = (int)dr[5],
-            Banned = (bool)dr[6]
-        };
-        await dr.CloseAsync();
+        await reader.CloseAsync();
+        
         return user;
     }
 
+    public static async Task<int> SetStatus(NpgsqlConnection db, long userId, string status)
+    {
+        const string query = "UPDATE users SET status = @status WHERE user_id = @user_id";
+        var cmd = new NpgsqlCommand(query, db);
+        cmd.Parameters.AddWithValue("user_id", userId);
+        cmd.Parameters.AddWithValue("status", status);
+        var r = await cmd.ExecuteNonQueryAsync();
+        return r;
+    }
+    
+    public static async Task<int> SetLang(NpgsqlConnection db, long userId, string lang)
+    {
+        const string query = "UPDATE users SET lang = @lang WHERE user_id = @user_id";
+        var cmd = new NpgsqlCommand(query, db);
+        cmd.Parameters.AddWithValue("user_id", userId);
+        cmd.Parameters.AddWithValue("lang", lang);
+        var r = await cmd.ExecuteNonQueryAsync();
+        return r;
+    }
+    
+    public static async Task<int> SetRank(NpgsqlConnection db, long userId, int rank)
+    {
+        const string query = "UPDATE users SET rank = @rank WHERE user_id = @user_id";
+        var cmd = new NpgsqlCommand(query, db);
+        cmd.Parameters.AddWithValue("user_id", userId);
+        cmd.Parameters.AddWithValue("rank", rank);
+        var r = await cmd.ExecuteNonQueryAsync();
+        return r;
+    }
+    
+    // here comes the fun, turuturu
+    public static async Task<List<DBSubject>> GetSubjects(NpgsqlConnection db)
+    {
+        const string query = "SELECT * FROM subjects";
+        var cmd = new NpgsqlCommand(query, db);
+        var reader = await cmd.ExecuteReaderAsync();
+        List<DBSubject> results = [];
+        while (await reader.ReadAsync())
+        {
+            var element = new DBSubject()
+            {
+                CodeName = reader.GetString(0),
+                Name = reader.GetString(1)
+            };
+            results.Add(element);
+        }
+        await reader.CloseAsync();
+        
+        return results;
+    }
+    
+    public static async Task<DBSubject> GetSubject(NpgsqlConnection db, string codeName)
+    {
+        const string query = "SELECT * FROM subjects WHERE code_name = @code_name";
+        var cmd = new NpgsqlCommand(query, db);
+        cmd.Parameters.AddWithValue("code_name", codeName);
+        var reader = await cmd.ExecuteReaderAsync();
+        var subject = new DBSubject();
+        while (await reader.ReadAsync())
+        {
+            subject = new DBSubject()
+            { 
+                CodeName = reader.GetString(0),
+                Name = reader.GetString(1)
+            };
+        }
+        await reader.CloseAsync();
+        
+        return subject;
+    }
+
+    public static async Task<int> AddSubject(NpgsqlConnection db, string codeName, string name)
+    {
+        const string query = "INSERT INTO subjects(code_name, name) VALUES(@code_name, @name)";
+        var cmd = new NpgsqlCommand(query, db);
+        cmd.Parameters.AddWithValue("code_name", codeName);
+        cmd.Parameters.AddWithValue("name", name);
+        var r = await cmd.ExecuteNonQueryAsync();
+        return r;
+    }
+
+    public static async Task<DBAdvertisement> GetAdvertisementById(NpgsqlConnection db, int id)
+    {
+        const string query = "SELECT * FROM ads WHERE id = @id";
+        var cmd = new NpgsqlCommand(query, db);
+        cmd.Parameters.AddWithValue("id", id);
+        var reader = await cmd.ExecuteReaderAsync();
+        var ad = new DBAdvertisement();
+        while (await reader.ReadAsync())
+        {
+            ad = new DBAdvertisement()
+            { 
+                Id = reader.GetInt32(0),
+                Subject = reader.GetString(1),
+                Book = reader.GetString(2),
+                BookCode = reader.GetString(3),
+                Years = reader.GetFieldValue<List<int>>(4),
+                Contacts = reader.GetFieldValue<List<string>>(5),
+                FromUser = reader.GetInt64(6)
+            };
+        }
+        await reader.CloseAsync();
+        
+        return ad;
+    }
+
+    public static async Task<int> CreateAdvertisement(NpgsqlConnection db, long fromUser)
+    {
+        const string query = "INSERT INTO ads(from_user) VALUES(@from_user)";
+        var cmd = new NpgsqlCommand(query, db);
+        cmd.Parameters.AddWithValue("from_user", fromUser);
+        var r = await cmd.ExecuteNonQueryAsync();
+        var returningValue = (int)cmd.Parameters["p_returning_value"].Value;
+        
+        return returningValue;
+    }
+
+    public static async Task<int> UpdateAdvertisement(NpgsqlConnection db, int id, string whateverItTakes, string value)
+    {
+        const string query = "UPDATE ads SET @whatever_it_takes = @value WHERE id = @id";
+        var cmd = new NpgsqlCommand(query, db);
+        cmd.Parameters.AddWithValue("whatever_it_takes", whateverItTakes);
+        cmd.Parameters.AddWithValue("value", value);
+        cmd.Parameters.AddWithValue("id", id);
+        var r = await cmd.ExecuteNonQueryAsync();
+        
+        return r;
+    }
+
+    public static async Task<int> DeleteAdvertisement(NpgsqlConnection db, int id)
+    {
+        const string query = "DELETE FROM ads WHERE id = @id";
+        var cmd = new NpgsqlCommand(query, db);
+        cmd.Parameters.AddWithValue("id", id);
+        var r = await cmd.ExecuteNonQueryAsync();
+
+        return r;
+    }
+    
 }

@@ -22,12 +22,12 @@ async void OnUpdate(object? sender, UpdateEventArgs e)
         {
             await Database.AddUser(db, update.Message.From);
         }
-
+        
+        var user = await Database.GetUser(db, update.Message.From.Id);
         InlineKeyboard? keyboard;
         switch (update.Message.Text)
         {
             case "/start":
-            {
                 keyboard = new InlineKeyboard(
                     [
                         [
@@ -40,12 +40,22 @@ async void OnUpdate(object? sender, UpdateEventArgs e)
                 );
                 await BotApi.SendMessage(update.Message.From.Id, "miao", keyboard: keyboard);
                 break;
-            }
+            
+            // admin section
+            case "/subs":
+                Console.WriteLine(user.FirstName);
+                if (user.Rank == 10)
+                {
+                    var subCount = await Database.GetSubs(db);
+                    await BotApi.SendMessage(update.Message.From.Id, $"diocans: {subCount}");
+                }
+                break;
         }
     }
     
     if (update.CallbackQuery != null)
     {
+        var user = await Database.GetUser(db, update.CallbackQuery.From.Id);
         switch (update.CallbackQuery.Data)
         {
             case "test":
