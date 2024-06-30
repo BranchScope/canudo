@@ -199,32 +199,6 @@ async void OnUpdate(object? sender, UpdateEventArgs e)
                     //todo parsing of the contacts
                     //todo send advertisement in the channel
                     break;
-                case { } when update.CallbackQuery.Data.StartsWith("cancel_ad"):
-                    var p = update.CallbackQuery.Data.Split("/");
-                    ad_id = Convert.ToInt32(p[1].Split(":")[1]);
-                    ad = await Database.GetAdvertisementById(db, ad_id);
-                    if (ad.FromUser == update.CallbackQuery.From.Id)
-                    {
-                        await Database.SetStatus(db, update.CallbackQuery.From.Id, "");
-                        await Database.DeleteAdvertisement(db, ad_id);
-                        if (update.CallbackQuery.Data.Contains("message_id"))
-                        {
-                            //todo delete from channel
-                        }
-                        keyboard = new InlineKeyboard(
-                            [
-                                [
-                                    new Button("Crea Annuncio", "write_ad")
-                                ],
-                                [
-                                    new Button("Codice Sorgente", url: "https://github.com/BranchScope/canudo")
-                                ]
-                            ]
-                        );
-                        await BotApi.EditMessageText(update.CallbackQuery.From.Id, update.CallbackQuery.Message.MessageId, "miao", keyboard: keyboard);
-                        await BotApi.AnswerCallbackQuery(update.CallbackQuery.Id);
-                    }
-                    break;
             }
         }
     }

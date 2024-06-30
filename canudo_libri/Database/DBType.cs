@@ -23,10 +23,10 @@ public class DBSubject
 public class DBAdvertisement
 {
     public int Id { get; set; }
-    public string Subject { get; set; }
-    public string Book { get; set; }
-    public string BookCode { get; set; }
-    public List<int> Years { get; set; }
-    public List<string> Contacts { get; set; }
+    public string? Subject { get; set; }
+    public string? Book { get; set; }
+    public string? BookCode { get; set; }
+    public List<int>? Years { get; set; }
+    public List<string>? Contacts { get; set; }
     public long FromUser { get; set; }
 }

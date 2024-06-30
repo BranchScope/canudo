@@ -201,11 +201,11 @@ public class Database
             ad = new DBAdvertisement()
             { 
                 Id = reader.GetInt32(0),
-                Subject = reader.GetString(1),
-                Book = reader.GetString(2),
-                BookCode = reader.GetString(3),
-                Years = reader.GetFieldValue<List<int>>(4),
-                Contacts = reader.GetFieldValue<List<string>>(5),
+                Subject = reader.IsDBNull(1) ? null : reader.GetString(1),
+                Book = reader.IsDBNull(2) ? null : reader.GetString(2),
+                BookCode = reader.IsDBNull(3) ? null : reader.GetString(3),
+                Years = reader.IsDBNull(4) ? null : reader.GetFieldValue<List<int>>(4),
+                Contacts = reader.IsDBNull(5) ? null : reader.GetFieldValue<List<string>>(5),
                 FromUser = reader.GetInt64(6)
             };
         }
@@ -216,13 +216,12 @@ public class Database
 
     public static async Task<int> CreateAdvertisement(NpgsqlConnection db, long fromUser)
     {
-        const string query = "INSERT INTO ads(from_user) VALUES(@from_user)";
+        const string query = "INSERT INTO ads(from_user) VALUES(@from_user) RETURNING id";
         var cmd = new NpgsqlCommand(query, db);
         cmd.Parameters.AddWithValue("from_user", fromUser);
-        var r = await cmd.ExecuteNonQueryAsync();
-        var returningValue = (int)cmd.Parameters["p_returning_value"].Value;
+        var id = (int)await cmd.ExecuteScalarAsync();
         
-        return returningValue;
+        return id;
     }
 
     public static async Task<int> UpdateAdvertisement(NpgsqlConnection db, int id, string whateverItTakes, string value)
