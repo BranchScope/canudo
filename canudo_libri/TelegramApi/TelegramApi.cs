@@ -57,7 +57,7 @@ public sealed class BotApi
     }
     
     // https://core.telegram.org/bots/api#sendmessage
-    public static async Task<Response<Result>> SendMessage(long chatId, string text, InlineKeyboard? keyboard = null, bool disableWebPagePreview = true)
+    public static async Task<Response<Result>> SendMessage(long chatId, string text, InlineKeyboard? keyboard = null, int replyToMessageId = default, bool disableWebPagePreview = true)
     {
         var request = new RestRequest("sendMessage", Method.Post);
         var param = new Dictionary<string, object>
@@ -71,6 +71,12 @@ public sealed class BotApi
         if (keyboard != null)
         {
             param.Add("reply_markup", JsonSerializer.Serialize(keyboard));
+        }
+
+        if (replyToMessageId != default)
+        {
+            var reply_parameters = new Dictionary<string, int> { {"message_id", replyToMessageId } };
+            param.Add("reply_parameters", reply_parameters);
         }
 
         request.AddJsonBody(param);
@@ -96,6 +102,21 @@ public sealed class BotApi
             param.Add("reply_markup", JsonSerializer.Serialize(keyboard));
         }
         
+        request.AddJsonBody(param);
+        var response = await Client.ExecutePostAsync(request);
+        return JsonSerializer.Deserialize<Response<Result>>(response.Content ?? throw new MissingFieldException()) ?? throw new Exception("wtf!?");
+    }
+    
+    // https://core.telegram.org/bots/api#deletemessage
+    public static async Task<Response<Result>> DeleteMessage(long chatId, int messageId)
+    {
+        var request = new RestRequest("deleteMessage", Method.Post);
+        var param = new Dictionary<string, object>
+        {
+            { "chat_id", chatId },
+            { "message_id", messageId }
+        };
+
         request.AddJsonBody(param);
         var response = await Client.ExecutePostAsync(request);
         return JsonSerializer.Deserialize<Response<Result>>(response.Content ?? throw new MissingFieldException()) ?? throw new Exception("wtf!?");
