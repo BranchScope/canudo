@@ -27,6 +27,6 @@ public class DBAdvertisement
     public string? Book { get; set; }
     public string? BookCode { get; set; }
     public List<int>? Years { get; set; }
-    public List<string>? Contacts { get; set; }
+    public List<List<string>>? Contacts { get; set; }
     public long FromUser { get; set; }
 }

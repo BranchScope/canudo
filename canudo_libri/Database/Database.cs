@@ -1,7 +1,4 @@
-﻿using System.Runtime.InteropServices.JavaScript;
-using System.Text.Json;
-using Npgsql;
-using NpgsqlTypes;
+﻿using Npgsql;
 
 namespace canudo_libri.Database;
 
@@ -29,6 +26,7 @@ public class Database
         var cmd = new NpgsqlCommand(query, db);
         cmd.Parameters.AddWithValue("user_id", userId);
         var count = (long)await cmd.ExecuteScalarAsync();
+        
         return count;
     }
 
@@ -45,6 +43,7 @@ public class Database
         cmd.Parameters.AddWithValue("rank", 1);
         cmd.Parameters.AddWithValue("banned", false);
         var r = await cmd.ExecuteNonQueryAsync();
+        
         return r;
     }
 
@@ -53,6 +52,7 @@ public class Database
         const string query = "SELECT COUNT(*) FROM users";
         var cmd = new NpgsqlCommand(query, db);
         var count = (long)await cmd.ExecuteScalarAsync();
+        
         return count;
     }
 
@@ -115,6 +115,7 @@ public class Database
         cmd.Parameters.AddWithValue("user_id", userId);
         cmd.Parameters.AddWithValue("status", status);
         var r = await cmd.ExecuteNonQueryAsync();
+        
         return r;
     }
     
@@ -125,6 +126,7 @@ public class Database
         cmd.Parameters.AddWithValue("user_id", userId);
         cmd.Parameters.AddWithValue("lang", lang);
         var r = await cmd.ExecuteNonQueryAsync();
+        
         return r;
     }
     
@@ -135,6 +137,7 @@ public class Database
         cmd.Parameters.AddWithValue("user_id", userId);
         cmd.Parameters.AddWithValue("rank", rank);
         var r = await cmd.ExecuteNonQueryAsync();
+        
         return r;
     }
     
@@ -186,6 +189,17 @@ public class Database
         cmd.Parameters.AddWithValue("code_name", codeName);
         cmd.Parameters.AddWithValue("name", name);
         var r = await cmd.ExecuteNonQueryAsync();
+        
+        return r;
+    }
+    
+    public static async Task<int> DeleteSubject(NpgsqlConnection db, string codeName)
+    {
+        const string query = "DELETE FROM subjects WHERE code_name = @code_name";
+        var cmd = new NpgsqlCommand(query, db);
+        cmd.Parameters.AddWithValue("code_name", codeName);
+        var r = await cmd.ExecuteNonQueryAsync();
+        
         return r;
     }
 
@@ -205,13 +219,33 @@ public class Database
                 Book = reader.IsDBNull(2) ? null : reader.GetString(2),
                 BookCode = reader.IsDBNull(3) ? null : reader.GetString(3),
                 Years = reader.IsDBNull(4) ? null : reader.GetFieldValue<List<int>>(4),
-                Contacts = reader.IsDBNull(5) ? null : reader.GetFieldValue<List<string>>(5),
+                Contacts = reader.IsDBNull(5) ? null : ConvertToJaggedList(reader.GetFieldValue<string[,]>(5)),
                 FromUser = reader.GetInt64(6)
             };
         }
         await reader.CloseAsync();
         
         return ad;
+    }
+    
+    // a little util
+    static List<List<string>> ConvertToJaggedList(string[,] multidimensionalArray)
+    {
+        int outerLength = multidimensionalArray.GetLength(0);
+        int innerLength = multidimensionalArray.GetLength(1);
+        var jaggedList = new List<List<string>>(outerLength);
+
+        for (int i = 0; i < outerLength; i++)
+        {
+            var innerList = new List<string>(innerLength);
+            for (int j = 0; j < innerLength; j++)
+            {
+                innerList.Add(multidimensionalArray[i, j]);
+            }
+            jaggedList.Add(innerList);
+        }
+
+        return jaggedList;
     }
 
     public static async Task<int> CreateAdvertisement(NpgsqlConnection db, long fromUser)
@@ -224,11 +258,11 @@ public class Database
         return id;
     }
 
-    public static async Task<int> UpdateAdvertisement(NpgsqlConnection db, int id, string whateverItTakes, string value)
+    public static async Task<int> UpdateAdvertisement(NpgsqlConnection db, int id, string whateverItTakes, object value)
     {
-        const string query = "UPDATE ads SET @whatever_it_takes = @value WHERE id = @id";
+        if (value == null) throw new ArgumentNullException(nameof(value));
+        var query = $"UPDATE ads SET {whateverItTakes} = @value WHERE id = @id";
         var cmd = new NpgsqlCommand(query, db);
-        cmd.Parameters.AddWithValue("whatever_it_takes", whateverItTakes);
         cmd.Parameters.AddWithValue("value", value);
         cmd.Parameters.AddWithValue("id", id);
         var r = await cmd.ExecuteNonQueryAsync();

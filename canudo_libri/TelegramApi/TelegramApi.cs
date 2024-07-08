@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Data.SqlTypes;
+using System.Text.Json;
 using Npgsql;
 using RestSharp;
 
@@ -40,7 +41,7 @@ public sealed class BotApi
     }
     
     // https://core.telegram.org/bots/api#getupdates
-    public static async Task<UpdateResponse> GetUpdates(int? offset = 0, int? limit = 100, int? timeout = 10, List<string>? allowedUpdates = null)
+    public static async Task<UpdateResponse?> GetUpdates(int? offset = 0, int? limit = 100, int? timeout = 10, List<string>? allowedUpdates = null)
     {
         var request = new RestRequest("getUpdates", Method.Post);
         var param = new
@@ -53,11 +54,18 @@ public sealed class BotApi
         
         request.AddJsonBody(param);
         var response = await Client.ExecutePostAsync(request);
-        return JsonSerializer.Deserialize<UpdateResponse>(response.Content ?? throw new MissingFieldException()) ?? throw new Exception("wtf!?");
+        
+        try{
+            return JsonSerializer.Deserialize<UpdateResponse>(response.Content ?? throw new MissingFieldException()) ?? throw new Exception("wtf!?");
+        }
+        catch (JsonException ex)
+        {
+            return null;
+        }
     }
     
     // https://core.telegram.org/bots/api#sendmessage
-    public static async Task<Response<Result>> SendMessage(long chatId, string text, InlineKeyboard? keyboard = null, int replyToMessageId = default, bool disableWebPagePreview = true)
+    public static async Task<Response<Result>?> SendMessage(long chatId, string text, InlineKeyboard? keyboard = null, int replyToMessageId = default, bool disableWebPagePreview = true)
     {
         var request = new RestRequest("sendMessage", Method.Post);
         var param = new Dictionary<string, object>
@@ -81,11 +89,18 @@ public sealed class BotApi
 
         request.AddJsonBody(param);
         var response = await Client.ExecutePostAsync(request);
-        return JsonSerializer.Deserialize<Response<Result>>(response.Content ?? throw new MissingFieldException()) ?? throw new Exception("wtf!?");
+        
+        try{
+            return JsonSerializer.Deserialize<Response<Result>>(response.Content ?? throw new MissingFieldException()) ?? throw new Exception("wtf!?");
+        }
+        catch (JsonException ex)
+        {
+            return null;
+        }
     }
     
     // https://core.telegram.org/bots/api#editmessagetext
-    public static async Task<Response<Result>> EditMessageText(long chatId, int messageId, string text, InlineKeyboard? keyboard = null, bool disableWebPagePreview = true)
+    public static async Task<Response<Result>?> EditMessageText(long chatId, int messageId, string text, InlineKeyboard? keyboard = null, bool disableWebPagePreview = true)
     {
         var request = new RestRequest("editMessageText", Method.Post);
         var param = new Dictionary<string, object>
@@ -104,11 +119,18 @@ public sealed class BotApi
         
         request.AddJsonBody(param);
         var response = await Client.ExecutePostAsync(request);
-        return JsonSerializer.Deserialize<Response<Result>>(response.Content ?? throw new MissingFieldException()) ?? throw new Exception("wtf!?");
+        
+        try{
+            return JsonSerializer.Deserialize<Response<Result>>(response.Content ?? throw new MissingFieldException()) ?? throw new Exception("wtf!?");
+        }
+        catch (JsonException ex)
+        {
+            return null;
+        }
     }
     
     // https://core.telegram.org/bots/api#deletemessage
-    public static async Task<Response<Result>> DeleteMessage(long chatId, int messageId)
+    public static async Task<Response<Result>?> DeleteMessage(long chatId, int messageId)
     {
         var request = new RestRequest("deleteMessage", Method.Post);
         var param = new Dictionary<string, object>
@@ -119,11 +141,62 @@ public sealed class BotApi
 
         request.AddJsonBody(param);
         var response = await Client.ExecutePostAsync(request);
-        return JsonSerializer.Deserialize<Response<Result>>(response.Content ?? throw new MissingFieldException()) ?? throw new Exception("wtf!?");
+        
+        try{
+            return JsonSerializer.Deserialize<Response<Result>>(response.Content ?? throw new MissingFieldException()) ?? throw new Exception("wtf!?");
+        }
+        catch (JsonException ex)
+        {
+            return null;
+        }
+    }
+    
+    // https://core.telegram.org/bots/api#pinchatmessage
+    public static async Task<Response<Result>?> PinChatMessage(long chatId, int messageId)
+    {
+        var request = new RestRequest("pinChatMessage", Method.Post);
+        var param = new Dictionary<string, object>
+        {
+            { "chat_id", chatId },
+            { "message_id", messageId }
+        };
+
+        request.AddJsonBody(param);
+        var response = await Client.ExecutePostAsync(request);
+        
+        try{
+            return JsonSerializer.Deserialize<Response<Result>>(response.Content ?? throw new MissingFieldException()) ?? throw new Exception("wtf!?");
+        }
+        catch (JsonException ex)
+        {
+            return null;
+        }
+    }
+    
+    // https://core.telegram.org/bots/api#unpinchatmessage
+    public static async Task<Response<Result>?> UnpinChatMessage(long chatId, int messageId)
+    {
+        var request = new RestRequest("unpinChatMessage", Method.Post);
+        var param = new Dictionary<string, object>
+        {
+            { "chat_id", chatId },
+            { "message_id", messageId }
+        };
+
+        request.AddJsonBody(param);
+        var response = await Client.ExecutePostAsync(request);
+        
+        try{
+            return JsonSerializer.Deserialize<Response<Result>>(response.Content ?? throw new MissingFieldException()) ?? throw new Exception("wtf!?");
+        }
+        catch (JsonException ex)
+        {
+            return null;
+        }
     }
     
     // https://core.telegram.org/bots/api#answercallbackquery
-    public static async Task<Response<bool>> AnswerCallbackQuery(string callbackQueryId, int cacheTime = 0, bool showAlert = false, string? text = null, string? url = null)
+    public static async Task<Response<bool>?> AnswerCallbackQuery(string callbackQueryId, int cacheTime = 0, bool showAlert = false, string? text = null, string? url = null)
     {
         var request = new RestRequest("answerCallbackQuery", Method.Post);
         var param = new Dictionary<string, object>
@@ -145,11 +218,19 @@ public sealed class BotApi
         
         request.AddJsonBody(param);
         var response = await Client.ExecutePostAsync(request);
-        return JsonSerializer.Deserialize<Response<bool>>(response.Content ?? throw new MissingFieldException()) ?? throw new Exception("wtf!?");
+        
+        try
+        {
+            return JsonSerializer.Deserialize<Response<bool>>(response.Content ?? throw new MissingFieldException()) ?? throw new Exception("wtf!?");
+        }
+        catch (JsonException ex)
+        {
+            return null;
+        }
     }
     
     // https://core.telegram.org/bots/api#answerinlinequery
-    public static async Task<Response<bool>> AnswerInlineQuery(string inlineQueryId, List<InlineQueryResultAudio> results, InlineQueryResultButton? button = null, int cacheTime = 0)
+    public static async Task<Response<bool>?> AnswerInlineQuery(string inlineQueryId, List<InlineQueryResultAudio> results, InlineQueryResultButton? button = null, int cacheTime = 0)
     {
         var request = new RestRequest("answerInlineQuery", Method.Post);
         var param = new Dictionary<string, object>
@@ -166,7 +247,15 @@ public sealed class BotApi
 
         request.AddJsonBody(param);
         var response = await Client.ExecutePostAsync(request);
-        return JsonSerializer.Deserialize<Response<bool>>(response.Content ?? throw new MissingFieldException()) ?? throw new Exception("wtf!?");
+        
+        try
+        {
+            return JsonSerializer.Deserialize<Response<bool>>(response.Content ?? throw new MissingFieldException()) ?? throw new Exception("wtf!?");
+        }
+        catch (JsonException ex)
+        {
+            return null;
+        }
     }
 
 }
