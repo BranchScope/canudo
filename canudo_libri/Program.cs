@@ -51,7 +51,6 @@ async void OnUpdate(object? sender, UpdateEventArgs e)
             
             // admin section
             case "/subs":
-                Console.WriteLine(user.FirstName);
                 if (user.Rank == 10)
                 {
                     var subCount = await Database.GetSubs(db);
@@ -59,31 +58,37 @@ async void OnUpdate(object? sender, UpdateEventArgs e)
                 }
                 break;
             case { } when update.Message.Text.StartsWith("/addsubject"):
-                try
-                {
-                    var data = update.Message.Text.Replace("/addsubject ", "");
-                    var name = data.Split(":")[0];
-                    var codeName = data.Split(":")[1];
-                    await Database.AddSubject(db, codeName, name);
-                    await BotApi.SendMessage(update.Message.From.Id, "Subject added.");
-                }
-                catch (Exception exception)
-                {
-                    Console.WriteLine(exception);
-                    await BotApi.SendMessage(update.Message.From.Id, "USAGE: /addsubject NAME:CODENAME");
+                if (user.Rank == 10)
+                    {
+                    try
+                    {
+                        var data = update.Message.Text.Replace("/addsubject ", "");
+                        var name = data.Split(":")[0];
+                        var codeName = data.Split(":")[1];
+                        await Database.AddSubject(db, codeName, name);
+                        await BotApi.SendMessage(update.Message.From.Id, "Subject added.");
+                    }
+                    catch (Exception exception)
+                    {
+                        Console.WriteLine(exception);
+                        await BotApi.SendMessage(update.Message.From.Id, "USAGE: /addsubject NAME:CODENAME");
+                    }
                 }
                 break;
             case { } when update.Message.Text.StartsWith("/delsubject"):
-                try
-                {
-                    var codeName = update.Message.Text.Split(" ")[1];
-                    await Database.DeleteSubject(db, codeName);
-                    await BotApi.SendMessage(update.Message.From.Id, "Subject deleted.");
-                }
-                catch (Exception exception)
-                {
-                    Console.WriteLine(exception);
-                    await BotApi.SendMessage(update.Message.From.Id, "USAGE: /delsubject CODENAME");
+                if (user.Rank == 10)
+                    {
+                    try
+                    {
+                        var codeName = update.Message.Text.Split(" ")[1];
+                        await Database.DeleteSubject(db, codeName);
+                        await BotApi.SendMessage(update.Message.From.Id, "Subject deleted.");
+                    }
+                    catch (Exception exception)
+                    {
+                        Console.WriteLine(exception);
+                        await BotApi.SendMessage(update.Message.From.Id, "USAGE: /delsubject CODENAME");
+                    }
                 }
                 break;
             
